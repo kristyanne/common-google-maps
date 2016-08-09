@@ -36,6 +36,7 @@
 
         /**
          * Load the Google Maps API using the Google Loader.
+         * Docs: https://developers.google.com/loader/
          * @return {Promise}
          */
         loadAPI() {
@@ -43,13 +44,17 @@
                 if(GoogleMap.APILoaded()) {
                     resolve();
                 } else {
-                    this.API.params.forEach(p => {
-                        console.log(p);
-                    });
-                    //TODO: NEED TO MAP this.API.params so that we can do this:
-                    // other_params: params.map().join('&')
+                    const params = this.API.params;
+                    let arr = [];
+
+                    for(var p in params) {
+                        if(params.hasOwnProperty(p)) {
+                            arr.push(encodeURIComponent(p) + '=' + params[p]);
+                        }
+                    }
+
                     google.load('maps', this.API.v, {
-                        other_params: 'key=' + this.API.params.key,
+                        other_params: arr.join('&'),
                         callback() {
                             resolve();
                         }
@@ -58,8 +63,13 @@
             });
         }
 
+        /**
+         * Ensure that the positions data passed to the constructor
+         * exists, has values and is an array.
+         * @return {bool} [true if valid]
+         */
         validatePositions() {
-            var pos = this.settings.positions;
+            const pos = this.settings.positions;
 
             if(!pos || !pos.length || !Array.isArray(pos)) {
                 return false;
@@ -92,7 +102,6 @@
 
                 this.mapInstance = new google.maps.Map(this.element, options);
 
-                // // TODO: SHOULD THIS BE CONFIGURABLE?
                 this.addMarkers();
             });
         }
